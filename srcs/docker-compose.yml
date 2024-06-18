@@ -1,0 +1,80 @@
+# Docker Compose version
+version: '3'
+
+####    Services    #### 
+services:
+  # NGINX service configuration
+  nginx:
+    container_name: nginx
+    # Mount the 'wordpress' volume to specified path
+    volumes:
+    - wordpress:/var/www/html 
+    # Attach this service to the 'inception' network
+    networks:
+    - inception
+    # Ensure 'wordpress' starts BEFORE this service
+    depends_on:
+    - wordpress
+    # Path to the directory for building the NGINX image
+    build: requirements/nginx
+    # Use the 'nginx' image
+    image: nginx
+    # Load environment variables from the .env file
+    env_file: .env
+    # Map port 443 on the host to port 443 on the container
+    ports:
+    - "443:443"
+    # Restart the container if it exits with a failure
+    restart: on-failure
+
+  mariadb:
+    container_name: mariadb
+    volumes:
+    - mariadb:/var/lib/mysql
+    networks:
+    - inception
+    build: requirements/mariadb
+    image: mariadb 
+    env_file: .env 
+    expose:
+    - "3306"
+    restart: unless-stopped
+
+  wordpress:
+    container_name: wordpress
+    volumes:
+    - wordpress:/var/www/html
+    networks:
+    - inception
+    depends_on:
+    - mariadb
+    build: requirements/wordpress
+    image: wordpress 
+    env_file: .env 
+    expose:
+    - "9000"
+    restart: on-failure
+
+####    Volumes    ####
+volumes:
+  wordpress:
+    # Use the local volume driver
+    driver: local
+    driver_opts:
+      # No specific type, using the bind mount
+      type: 'none'
+      # Bind mount option
+      o: 'bind'
+      # Host directory to mount as a volume
+      device: '/home/kquerel/data/wordpress/'
+    
+  mariadb:
+    driver: local
+    driver_opts:
+      type: 'none'
+      o: 'bind'
+      device: '/home/kquerel/data/mariadb/'
+ 
+networks:
+  inception:
+    driver: bridge
