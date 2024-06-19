@@ -1,73 +1,109 @@
-# Docker Compose version
+# Specify the version of the Docker Compose file format
 version: '3'
 
-####    Services    #### 
 services:
-  # NGINX service configuration
   nginx:
+    # Name the nginx container
     container_name: nginx
-    # Mount the 'wordpress' volume to specified path
+    
+    # Mount the wordpress volume to the /var/www/html directory in the container
     volumes:
-    - wordpress:/var/www/html 
-    # Attach this service to the 'inception' network
+      - wordpress:/var/www/html
+
+    # Connect the nginx container to the inception network
     networks:
-    - inception
-    # Ensure 'wordpress' starts BEFORE this service
+      - inception
+
+    # Ensure the wordpress service starts before nginx
     depends_on:
-    - wordpress
-    # Path to the directory for building the NGINX image
+      - wordpress
+
+    # Build the nginx image from the Dockerfile in the requirements/nginx directory
     build: requirements/nginx
-    # Use the 'nginx' image
+
+    # Use the nginx image (can be customized if needed)
     image: nginx
+
     # Load environment variables from the .env file
     env_file: .env
-    # Map port 443 on the host to port 443 on the container
+
+    # Map port 443 on the host to port 443 on the container for HTTPS traffic
     ports:
-    - "443:443"
+      - "443:443"
+
     # Restart the container if it exits with a failure
     restart: on-failure
 
   mariadb:
+    # Name the mariadb container
     container_name: mariadb
+    
+    # Mount the mariadb volume to the /var/lib/mysql directory in the container
     volumes:
-    - mariadb:/var/lib/mysql
+      - mariadb:/var/lib/mysql
+
+    # Connect the mariadb container to the inception network
     networks:
-    - inception
+      - inception
+
+    # Build the mariadb image from the Dockerfile in the requirements/mariadb directory
     build: requirements/mariadb
-    image: mariadb 
-    env_file: .env 
+
+    # Use the mariadb image (can be customized if needed)
+    image: mariadb
+
+    # Load environment variables from the .env file
+    env_file: .env
+
+    # Expose port 3306 to other services in the Docker network
     expose:
-    - "3306"
+      - "3306"
+
+    # Always restart the container unless it is explicitly stopped
     restart: unless-stopped
 
   wordpress:
+    # Name the wordpress container
     container_name: wordpress
+    
+    # Mount the wordpress volume to the /var/www/html directory in the container
     volumes:
-    - wordpress:/var/www/html
+      - wordpress:/var/www/html
+
+    # Connect the wordpress container to the inception network
     networks:
-    - inception
+      - inception
+
+    # Ensure the mariadb service starts before wordpress
     depends_on:
-    - mariadb
+      - mariadb
+
+    # Build the wordpress image from the Dockerfile in the requirements/wordpress directory
     build: requirements/wordpress
-    image: wordpress 
-    env_file: .env 
+
+    # Use the wordpress image (can be customized if needed)
+    image: wordpress
+
+    # Load environment variables from the .env file
+    env_file: .env
+
+    # Expose port 9000 to other services in the Docker network
     expose:
-    - "9000"
+      - "9000"
+
+    # Restart the container if it exits with a failure
     restart: on-failure
 
-####    Volumes    ####
+# Define the wordpress volume with local driver, bind it to the specified host path
 volumes:
   wordpress:
-    # Use the local volume driver
     driver: local
     driver_opts:
-      # No specific type, using the bind mount
       type: 'none'
-      # Bind mount option
       o: 'bind'
-      # Host directory to mount as a volume
       device: '/home/kquerel/data/wordpress/'
-    
+      
+  # Define the mariadb volume with local driver, bind it to the specified host path
   mariadb:
     driver: local
     driver_opts:
@@ -75,6 +111,7 @@ volumes:
       o: 'bind'
       device: '/home/kquerel/data/mariadb/'
  
+# Define the inception network with the bridge driver
 networks:
   inception:
     driver: bridge

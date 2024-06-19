@@ -1,6 +1,32 @@
-[mysqld]
-user = mysql
-port = 3306
-datadir = /var/lib/mysql
-socket  = /run/mysqld/mysqld.sock
-bind_address=*
+# The username the MySQL server will run as
+user			= mysql
+
+# The port number the MySQL server will listen on (default is 3306)
+port			= 3306
+
+# The file where the server's process ID will be stored
+pid-file		= /var/run/mysqld/mysqld.pid
+
+# The socket file used for local connections (commented out in this example)
+#socket			= /var/run/mysqld/mysqld.socket
+
+# The base directory for the MySQL installation
+basedir			= /usr
+
+# The directory where the database files are stored
+datadir			= /var/lib/mysql
+
+# The directory where temporary files are stored
+tmpdir			= /tmp
+
+# The directory where the language-specific error messages are stored
+lc-messages-dir	= /usr/share/mysql
+
+# The language for error messages (set to American English in this example)
+lc-messages		= en_US
+
+# Disable external locking to improve performance (usually safe for modern systems)
+skip-external-locking
+
+# Configuration specific to MariaDB version 10.5
+[mariadb-10.5]
